@@ -1,5 +1,7 @@
 import { AnalysisResult, NutritionData, UserProfile } from "./types";
 
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+
 async function handleResponse(res: Response): Promise<unknown> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -11,14 +13,14 @@ async function handleResponse(res: Response): Promise<unknown> {
 export async function analyzeImage(file: File): Promise<AnalysisResult & { imageBase64?: string; mimeType?: string }> {
   const formData = new FormData();
   formData.append("image", file);
-  const result = await handleResponse(await fetch("/api/analyze/image", { method: "POST", body: formData })) as AnalysisResult;
+  const result = await handleResponse(await fetch(`${API_BASE}/api/analyze/image`, { method: "POST", body: formData })) as AnalysisResult;
   const imageBase64 = await fileToBase64(file);
   return { ...result, imageBase64, mimeType: file.type };
 }
 
 export async function analyzeText(description: string): Promise<AnalysisResult> {
   return handleResponse(
-    await fetch("/api/analyze/text", {
+    await fetch(`${API_BASE}/api/analyze/text`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ description }),
@@ -33,7 +35,7 @@ export async function analyzeCorrection(
   mimeType?: string
 ): Promise<AnalysisResult> {
   return handleResponse(
-    await fetch("/api/analyze/correct", {
+    await fetch(`${API_BASE}/api/analyze/correct`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ previousResult, correction, imageBase64, mimeType }),
@@ -66,7 +68,7 @@ export async function sendChatMessage(
   profile?: UserProfile,
 ): Promise<ChatApiResponse> {
   return handleResponse(
-    await fetch("/api/chat", {
+    await fetch(`${API_BASE}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message, history, dailyContext, imageBase64, mimeType, profile }),
